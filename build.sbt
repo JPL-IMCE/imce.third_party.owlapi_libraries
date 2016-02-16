@@ -174,8 +174,8 @@ def IMCEThirdPartyProject(projectName: String, location: String): Project =
 lazy val owlapiLibs = IMCEThirdPartyProject("owlapi-libraries", "owlapiLibs")
   .settings(
     libraryDependencies ++= Seq(
+      // extra("artifact.kind" -> "third_party.aggregate.libraries")
       "gov.nasa.jpl.imce.thirdParty" %% "scala-libraries" % Versions_scala_libraries.version
-        extra("artifact.kind" -> "third_party.aggregate.libraries")
         artifacts
         Artifact("scala-libraries", "zip", "zip", Some("resource"), Seq(), None, Map()),
 
