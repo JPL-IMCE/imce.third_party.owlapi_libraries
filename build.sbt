@@ -6,6 +6,8 @@ import gov.nasa.jpl.imce.sbt._
 
 useGpg := true
 
+updateOptions := updateOptions.value.withCachedResolution(true)
+
 developers := List(
   Developer(
     id="rouquett",
@@ -117,12 +119,16 @@ def IMCEThirdPartyProject(projectName: String, location: String): Project =
                 val graph = backend.SbtUpdateReport.fromConfigurationReport(compileConfig, mReport.module)
                 val roots: Set[Module] = graph.nodes.filter { m =>
                   m.id.organisation == mReport.module.organization &&
-                  m.id.name == mReport.module.name &&
-                  m.id.version == mReport.module.revision
+                    m.id.name == mReport.module.name &&
+                    m.id.version == mReport.module.revision
                 }.to[Set]
                 val scope: Seq[Module] = transitiveScope(roots, graph).to[Seq].sortBy( m => m.id.organisation + m.id.name)
-                val files = scope.flatMap { m: Module => m.jarFile }.sorted
+
+                val files = scope.flatMap { m: Module => m.jarFile }.to[Seq].sorted
                 s.log.info(s"Excluding ${files.size} jars from zip aggregate resource dependencies")
+                require(
+                  files.nonEmpty,
+                  s"There should be some excluded dependencies\ngraph=$graph\nroots=$roots\nscope=$scope")
                 files.foreach { f =>
                   s.log.info(s" exclude: ${f.getParentFile.getParentFile.name}/${f.getParentFile.name}/${f.name}")
                 }
@@ -137,15 +143,15 @@ def IMCEThirdPartyProject(projectName: String, location: String): Project =
             organizationArtifactKey = s"{oReport.organization},${oReport.name}"
             mReport <- oReport.modules
             (artifact, file) <- mReport.artifacts
-            if "jar" == artifact.extension && !zipFiles.contains(file)
+            if !mReport.evicted && "jar" == artifact.extension && !zipFiles.contains(file)
           } yield (oReport.organization, oReport.name, file, artifact)
 
           val fileArtifactsByType = fileArtifacts.groupBy { case (_, _, _, a) =>
             a.`classifier`.getOrElse(a.`type`)
           }
-          val jarArtifacts = fileArtifactsByType("jar")
-          val srcArtifacts = fileArtifactsByType("sources")
-          val docArtifacts = fileArtifactsByType("javadoc")
+          val jarArtifacts = fileArtifactsByType("jar").sortBy { case (o, _, jar, _) => s"$o/${jar.name}" }
+          val srcArtifacts = fileArtifactsByType("sources").sortBy { case (o, _, jar, _) => s"$o/${jar.name}" }
+          val docArtifacts = fileArtifactsByType("javadoc").sortBy { case (o, _, jar, _) => s"$o/${jar.name}" }
 
           val jars = jarArtifacts.map { case (o, _, jar, _) =>
             s.log.info(s"* jar: $o/${jar.name}")
@@ -175,9 +181,9 @@ lazy val owlapiLibs = IMCEThirdPartyProject("owlapi-libraries", "owlapiLibs")
   .settings(
     libraryDependencies ++= Seq(
       // extra("artifact.kind" -> "third_party.aggregate.libraries")
-      "gov.nasa.jpl.imce.thirdParty" %% "scala-libraries" % Versions_scala_libraries.version
+      "gov.nasa.jpl.imce.thirdParty" %% "other-scala-libraries" % Versions_other_scala_libraries.version
         artifacts
-        Artifact("scala-libraries", "zip", "zip", Some("resource"), Seq(), None, Map()),
+        Artifact("other-scala-libraries", "zip", "zip", Some("resource"), Seq(), None, Map()),
 
       "net.sourceforge.owlapi" % "owlapi-distribution" % Versions.owlapi %
       "compile" withSources() withJavadoc(),
