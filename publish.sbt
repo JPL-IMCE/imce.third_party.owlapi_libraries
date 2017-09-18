@@ -1,4 +1,12 @@
 
+// do not include all repositories in the POM
+// (this is important for staging since artifacts published to a staging repository
+//  can be promoted (i.e. published) to another repository)
+pomAllRepositories := false
+
+// make sure no repositories show up in the POM file
+pomIncludeRepository := { _ => false }
+
 // publish to bintray.com via: `sbt publish`
 publishTo := Some(
   "JPL-IMCE" at

@@ -11,8 +11,6 @@ val resourceArtifact = settingKey[Artifact]("Specifies the project's resource ar
 def IMCEThirdPartyProject(projectName: String, location: String): Project =
   Project(projectName, file("."))
     .enablePlugins(IMCEGitPlugin)
-    .enablePlugins(IMCEReleasePlugin)
-    .settings(IMCEReleasePlugin.packageReleaseProcessSettings)
     .settings(
       IMCEKeys.targetJDK := IMCEKeys.jdk18.value,
       IMCEKeys.licenseYearOrRange := "2015-2016",
@@ -141,25 +139,37 @@ def IMCEThirdPartyProject(projectName: String, location: String): Project =
         }
         val jarArtifacts = fileArtifactsByType("jar").map { case (o, _, jar, _) => o -> jar }.to[Set].to[Seq].sortBy { case (o, jar) => s"$o/${jar.name}" }
         val srcArtifacts = fileArtifactsByType("sources").map { case (o, _, jar, _) => o -> jar }.to[Set].to[Seq].sortBy { case (o, jar) => s"$o/${jar.name}" }
-        val docArtifacts = fileArtifactsByType("javadoc").map { case (o, _, jar, _) => o -> jar }.to[Set].to[Seq].sortBy { case (o, jar) => s"$o/${jar.name}" }
+        //val docArtifacts = fileArtifactsByType("javadoc").map { case (o, _, jar, _) => o -> jar }.to[Set].to[Seq].sortBy { case (o, jar) => s"$o/${jar.name}" }
+
+        val localLib = baseDirectory.value / "lib"
+
+        val localJars = (localLib * "owlapi-*-5.1.2.0-JPL-20170917.jar").get.map { file =>
+          s.log.info(s"* local lib: $libDir${file.name}")
+          file -> (libDir + file.name)
+        }
+
+        val localSrcs = (localLib * "owlapi-*-5.1.2.0-JPL-20170917-sources.jar").get.map { file =>
+          s.log.info(s"* local src: $srcDir${file.name}")
+          file -> (srcDir + file.name)
+        }
 
         val jars = jarArtifacts.map { case (o, jar) =>
           s.log.info(s"* jar: $o/${jar.name}")
           jar -> (libDir + jar.name)
-        }
+        } ++ localJars
+
         val srcs = srcArtifacts.map { case (o, jar) =>
           s.log.info(s"* src: $o/${jar.name}")
           jar -> (srcDir + jar.name)
-        }
-        val docs = docArtifacts.map { case (o, jar) =>
-          s.log.info(s"* doc: $o/${jar.name}")
-          jar -> (docDir + jar.name)
-        }
+        } ++ localSrcs
 
-        jars ++ srcs ++ docs
+//        val docs = docArtifacts.map { case (o, jar) =>
+//          s.log.info(s"* doc: $o/${jar.name}")
+//          jar -> (docDir + jar.name)
+//        }
+
+        jars ++ srcs //++ docs
       },
-
-      extractArchives := {},
 
       artifacts += {
         val n = (name in Universal).value
@@ -183,8 +193,8 @@ lazy val owlapiLibs = IMCEThirdPartyProject("owlapi-libraries", "owlapiLibs")
         artifacts
         Artifact("imce.third_party.other_scala_libraries", "zip", "zip", Some("resource"), Seq(), None, Map()),
 
-      "net.sourceforge.owlapi" % "owlapi-distribution" % Versions.owlapi %
-      "compile" withSources() withJavadoc(),
+//      "net.sourceforge.owlapi" % "owlapi-distribution" % Versions.owlapi %
+//      "compile" withSources() withJavadoc(),
 
       "xml-resolver" % "xml-resolver" % Versions.xmlResolver %
       "compile" withSources()))

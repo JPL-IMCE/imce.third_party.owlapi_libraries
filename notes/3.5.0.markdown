@@ -1,0 +1,8 @@
+imce.third_party.owlapi_libraries 3.5.0 is a major update
+
+## Issues Resolved
+
+- [#1 Use the OWLAPI 5.1.2 w/ improved serialization](https://github.com/JPL-IMCE/imce.third_party.owlapi_libraries/issues/1)
+
+    The PR https://github.com/owlcs/owlapi/pull/703 is not yet merged.
+    Instead, use artifacts built from https://github.com/NicolasRouquette/owlapi/tree/jpl/5.1.2.0-JPL-20170917
