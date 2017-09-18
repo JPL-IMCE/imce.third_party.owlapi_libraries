@@ -153,14 +153,20 @@ def IMCEThirdPartyProject(projectName: String, location: String): Project =
           file -> (srcDir + file.name)
         }
 
-        val jars = jarArtifacts.map { case (o, jar) =>
-          s.log.info(s"* jar: $o/${jar.name}")
-          jar -> (libDir + jar.name)
+        val jars = jarArtifacts.flatMap {
+          case (o, jar) if jar.name.startsWith("owlapi-") =>
+            None
+          case (o, jar) =>
+            s.log.info(s"* jar: $o/${jar.name}")
+            Some(jar -> (libDir + jar.name))
         } ++ localJars
 
-        val srcs = srcArtifacts.map { case (o, jar) =>
-          s.log.info(s"* src: $o/${jar.name}")
-          jar -> (srcDir + jar.name)
+        val srcs = srcArtifacts.flatMap {
+          case (o, jar) if jar.name.startsWith("owlapi-") =>
+            None
+          case (o, jar) =>
+            s.log.info(s"* src: $o/${jar.name}")
+            Some(jar -> (srcDir + jar.name))
         } ++ localSrcs
 
 //        val docs = docArtifacts.map { case (o, jar) =>
@@ -193,8 +199,8 @@ lazy val owlapiLibs = IMCEThirdPartyProject("owlapi-libraries", "owlapiLibs")
         artifacts
         Artifact("imce.third_party.other_scala_libraries", "zip", "zip", Some("resource"), Seq(), None, Map()),
 
-//      "net.sourceforge.owlapi" % "owlapi-distribution" % Versions.owlapi %
-//      "compile" withSources() withJavadoc(),
+      "net.sourceforge.owlapi" % "owlapi-distribution" % Versions.owlapi %
+      "compile" withSources() withJavadoc(),
 
       "xml-resolver" % "xml-resolver" % Versions.xmlResolver %
       "compile" withSources()))
