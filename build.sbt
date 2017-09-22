@@ -208,7 +208,7 @@ lazy val owlapiLibs = IMCEThirdPartyProject("owlapi-libraries", "owlapiLibs")
         Artifact("imce.third_party.other_scala_libraries", "zip", "zip", Some("resource"), Seq(), None, Map()),
 
       "com.github.jsonld-java" % "jsonld-java" % "0.9.0",
-      "com.github.inject" % "guide" % "4.1.0",
+      "com.github.inject" % "guice" % "4.1.0",
 
 
       "net.sourceforge.owlapi" % "owlapi-distribution" % Versions.owlapi %
