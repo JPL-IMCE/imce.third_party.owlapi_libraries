@@ -112,7 +112,7 @@ def IMCEThirdPartyProject(projectName: String, location: String): Project =
               }.to[Set]
               val scope: Seq[Module] = transitiveScope(roots, graph).to[Seq].sortBy(m => m.id.organisation + m.id.name)
 
-              val files = scope.flatMap { m: Module => m.jarFile }.to[Seq].sorted
+              val files = scope.flatMap { m: Module => m.jarFile }.sorted
               s.log.info(s"Excluding ${files.size} jars from zip aggregate resource dependencies")
               require(
                 files.nonEmpty,
@@ -128,7 +128,6 @@ def IMCEThirdPartyProject(projectName: String, location: String): Project =
 
         val fileArtifacts = for {
           oReport <- compileConfig.details
-          organizationArtifactKey = s"{oReport.organization},${oReport.name}"
           mReport <- oReport.modules
           (artifact, file) <- mReport.artifacts
           if !mReport.evicted && "jar" == artifact.extension && !zipFiles.contains(file)
@@ -209,7 +208,6 @@ lazy val owlapiLibs = IMCEThirdPartyProject("owlapi-libraries", "owlapiLibs")
 
       "com.github.jsonld-java" % "jsonld-java" % "0.9.0",
       "com.google.inject" % "guice" % "4.1.0",
-
 
       "net.sourceforge.owlapi" % "owlapi-distribution" % Versions.owlapi %
       "compile" withSources() withJavadoc(),
