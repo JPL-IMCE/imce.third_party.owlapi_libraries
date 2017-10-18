@@ -140,42 +140,18 @@ def IMCEThirdPartyProject(projectName: String, location: String): Project =
         val srcArtifacts = fileArtifactsByType("sources").map { case (o, _, jar, _) => o -> jar }.to[Set].to[Seq].sortBy { case (o, jar) => s"$o/${jar.name}" }
         //val docArtifacts = fileArtifactsByType("javadoc").map { case (o, _, jar, _) => o -> jar }.to[Set].to[Seq].sortBy { case (o, jar) => s"$o/${jar.name}" }
 
-        // temporary: https://github.com/JPL-IMCE/imce.third_party.owlapi_libraries/issues/1
-        val localLib = baseDirectory.value / "lib"
-
-        // temporary: https://github.com/JPL-IMCE/imce.third_party.owlapi_libraries/issues/1
-        val localJars = (localLib * "owlapi-*-5.1.2.0-JPL-20170918.1.jar").get.map { file =>
-          s.log.info(s"* local lib: $libDir${file.name}")
-          file -> (libDir + file.name)
-        }
-
-        // temporary: https://github.com/JPL-IMCE/imce.third_party.owlapi_libraries/issues/1
-        val localSrcs = (localLib * "owlapi-*-5.1.2.0-JPL-20170918.1-sources.jar").get.map { file =>
-          s.log.info(s"* local src: $srcDir${file.name}")
-          file -> (srcDir + file.name)
-        }
-
-        val jars = jarArtifacts.flatMap {
-          case (o, jar) if jar.name.startsWith("owlapi-") =>
-            None
+        val jars = jarArtifacts.map {
           case (o, jar) =>
             s.log.info(s"* jar: $o/${jar.name}")
-            Some(jar -> (libDir + jar.name))
-        } ++
-          // temporary: https://github.com/JPL-IMCE/imce.third_party.owlapi_libraries/issues/1
-          localJars
+            jar -> (libDir + jar.name)
+        }
 
-        val srcs = srcArtifacts.flatMap {
-          case (o, jar) if jar.name.startsWith("owlapi-") =>
-            None
+        val srcs = srcArtifacts.map {
           case (o, jar) =>
             s.log.info(s"* src: $o/${jar.name}")
-            Some(jar -> (srcDir + jar.name))
-        } ++
-          // temporary: https://github.com/JPL-IMCE/imce.third_party.owlapi_libraries/issues/1
-          localSrcs
+            jar -> (srcDir + jar.name)
+        }
 
-        // temporary: https://github.com/JPL-IMCE/imce.third_party.owlapi_libraries/issues/1
 //        val docs = docArtifacts.map { case (o, jar) =>
 //          s.log.info(s"* doc: $o/${jar.name}")
 //          jar -> (docDir + jar.name)
